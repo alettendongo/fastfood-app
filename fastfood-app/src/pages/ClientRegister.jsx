@@ -1,18 +1,10 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import axios from "axios"; // N'oublie pas : npm install axios
+import axios from "axios"; // Assure-toi d'avoir fait : npm install axios
 
-const GerantRegister = () => {
+const ClientRegister = () => {
     const navigate = useNavigate();
-    const [form, setForm] = useState({ 
-        prenom: "", 
-        nom: "", 
-        telephone: "", 
-        email: "", 
-        password: "", 
-        restaurant: "", 
-        lieu: "" 
-    });
+    const [form, setForm] = useState({ prenom: "", nom: "", email: "", telephone: "", password: "" });
     const [error, setError] = useState("");
     const [loading, setLoading] = useState(false);
 
@@ -22,32 +14,28 @@ const GerantRegister = () => {
         setLoading(true);
 
         try {
-            // On prépare les données pour Laravel
-            // On combine prenom et nom pour le champ 'name' requis par Laravel
+            // On prépare les données pour l'API Laravel
             const dataToSend = {
-                name: `${form.prenom} ${form.nom}`,
+                name: `${form.prenom} ${form.nom}`, // Laravel utilise souvent 'name' par défaut
                 email: form.email,
                 password: form.password,
-                role: "gerant", // On définit le rôle ici
-                // Optionnel : tu peux ajouter telephone et restaurant si tu as ajouté ces colonnes dans ta migration users
-                telephone: form.telephone,
-                restaurant: form.restaurant,
-                lieu: form.lieu
+                role: "client" // On force le rôle client ici
             };
 
+            // Appel à l'API Laravel
             const response = await axios.post("http://127.0.0.1:8000/api/register", dataToSend);
 
             if (response.status === 201 || response.status === 200) {
-                alert("Inscription réussie ! Veuillez vous connecter.");
-                navigate("/gerant/login");
+                alert("Bienvenue parmi nous ! Connectez-vous pour commander.");
+                navigate("/client/login");
             }
         } catch (err) {
+            // Gestion des erreurs de validation (ex: email déjà utilisé)
             if (err.response && err.response.data.errors) {
-                // Récupère le premier message d'erreur de Laravel (ex: email déjà pris)
                 const firstError = Object.values(err.response.data.errors)[0][0];
                 setError(firstError);
             } else {
-                setError(err.response?.data?.message || "Erreur lors de l'inscription. Vérifiez votre serveur.");
+                setError("Erreur lors de l'inscription. Vérifiez votre connexion au serveur.");
             }
         } finally {
             setLoading(false);
@@ -84,9 +72,9 @@ const GerantRegister = () => {
         },
         input: {
             width: "100%",
-            height: "42px",
+            height: "45px",
             padding: "0 15px",
-            margin: "6px 0",
+            margin: "8px 0",
             backgroundColor: "#151515",
             border: "1px solid #333",
             borderRadius: "8px",
@@ -111,10 +99,10 @@ const GerantRegister = () => {
         errorMsg: {
             color: "#ff4d4d",
             fontSize: "0.85rem",
-            marginBottom: "10px",
+            marginBottom: "15px",
             textAlign: "center",
             backgroundColor: "rgba(255, 77, 77, 0.1)",
-            padding: "8px",
+            padding: "10px",
             borderRadius: "5px"
         }
     };
@@ -123,29 +111,26 @@ const GerantRegister = () => {
         <div style={styles.background}>
             <div style={styles.overlay}></div>
             <div style={styles.formCard}>
-                <h3 style={{ textAlign: "center", margin: "0 0 20px 0", color: "#D4AF37", fontSize: "1.4rem" }}>Espace Gérant</h3>
+                <h3 style={{ textAlign: "center", margin: "0 0 10px 0", color: "#D4AF37", fontSize: "1.6rem" }}>Espace Gourmet</h3>
+                <p style={{ color: "#888", textAlign: "center", fontSize: "0.9rem", marginBottom: "20px" }}>Créez votre compte client</p>
                 
                 {error && <div style={styles.errorMsg}>{error}</div>}
 
-                <form onSubmit={handleSubmit} style={{ width: "100%" }}>
+                <form onSubmit={handleSubmit}>
                     <div style={{ display: "flex", gap: "10px" }}>
                         <input style={styles.input} placeholder="Prénom" required onChange={e => setForm({...form, prenom: e.target.value})} />
                         <input style={styles.input} placeholder="Nom" required onChange={e => setForm({...form, nom: e.target.value})} />
                     </div>
-                    <input style={styles.input} type="email" placeholder="Email professionnel" required onChange={e => setForm({...form, email: e.target.value})} />
-                    <div style={{ display: "flex", gap: "10px" }}>
-                        <input style={styles.input} type="tel" placeholder="Téléphone" required onChange={e => setForm({...form, telephone: e.target.value})} />
-                        <input style={styles.input} type="password" placeholder="Mot de passe" required onChange={e => setForm({...form, password: e.target.value})} />
-                    </div>
-                    <div style={{ borderTop: "1px solid #222", margin: "15px 0", paddingTop: "15px" }}>
-                        <input style={styles.input} placeholder="Nom du restaurant" required onChange={e => setForm({...form, restaurant: e.target.value})} />
-                        <input style={styles.input} placeholder="Lieu" required onChange={e => setForm({...form, lieu: e.target.value})} />
-                    </div>
+                    <input style={styles.input} type="email" placeholder="Votre email" required onChange={e => setForm({...form, email: e.target.value})} />
+                    <input style={styles.input} type="tel" placeholder="Téléphone" required onChange={e => setForm({...form, telephone: e.target.value})} />
+                    <input style={styles.input} type="password" placeholder="Mot de passe" required onChange={e => setForm({...form, password: e.target.value})} />
+                    
                     <button style={styles.button} type="submit" disabled={loading}>
-                        {loading ? "Inscription en cours..." : "Valider l'inscription"}
+                        {loading ? "Chargement..." : "S'inscrire"}
                     </button>
+                    
                     <p style={{ textAlign: "center", fontSize: "12px", marginTop: "15px", color: "#888" }}>
-                        Déjà inscrit ? <span style={{ color: "#D4AF37", cursor: "pointer", fontWeight: "bold" }} onClick={() => navigate("/gerant/login")}>Connexion</span>
+                        Déjà gourmet ? <span style={{ color: "#D4AF37", cursor: "pointer", fontWeight: "bold" }} onClick={() => navigate("/client/login")}>Se connecter</span>
                     </p>
                 </form>
             </div>
@@ -153,4 +138,4 @@ const GerantRegister = () => {
     );
 };
 
-export default GerantRegister;
+export default ClientRegister;

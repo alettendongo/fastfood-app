@@ -1,51 +1,86 @@
 import React, { useState } from "react";
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 
-import Logo from "./components/Logo";
-
+// --- Pages Générales ---
 import Home from "./pages/Home";
 
-// Anciennes pages (clients)
-import Login from "./pages/Login";
-import Register from "./pages/Register";
+// --- Pages Clients (Gourmets) ---
+import ClientRegister from "./pages/ClientRegister";
+import ClientLogin from "./pages/ClientLogin";
+import ClientDashboard from "./pages/ClientDashboard"; // Ta nouvelle page de menu unique
 
-// Nouvelles pages Gérants
+// --- Pages Gérants (Partenaires) ---
 import GerantRegister from "./pages/GerantRegister";
 import GerantLogin from "./pages/GerantLogin";
 import DashboardGerant from "./pages/DashboardGerant";
-import GerantProfile from "./pages/GerantProfile";
+import CreateRestaurant from "./pages/CreateRestaurant"; 
+import AddProduct from "./pages/AddProduct"; 
 
 function App() {
-  const [user, setUser] = useState(
-    JSON.parse(localStorage.getItem("user")) || null
-  );
+  // Récupération de l'utilisateur stocké dans le navigateur
+  const [user, setUser] = useState(JSON.parse(localStorage.getItem("user")) || null);
 
+  const handleLogout = () => {
+    localStorage.clear();
+    setUser(null);
+  };
 
   return (
     <Router>
-      <Logo />
-      {/* HEADER SUPPRIMÉ */}
-
       <Routes>
-        {/* Accueil */}
-        <Route path="/" element={<Home />} />
-        <Route path="/home" element={<Home />} />
-
-        {/* CLIENTS */}
-        <Route path="/login" element={<Login setUser={setUser} />} />
-        <Route path="/register" element={<Register setUser={setUser} />} />
-
-        {/* GERANTS */}
-        <Route path="/gerant/register" element={<GerantRegister />} />
-        <Route path="/gerant/login" element={<GerantLogin setUser={setUser} />} />
-
-        {/* DASHBOARD GERANT */}
-        <Route
-          path="/dashboard"
-          element={user && user.restaurant ? <DashboardGerant /> : <Home />}
+        {/* --- ACCUEIL PUBLIC --- */}
+        <Route path="/" element={<Home user={user} onLogout={handleLogout} />} />
+        
+        {/* --- FLUX CLIENT (DÉLICES D'ALETTE) --- */}
+        <Route path="/client/register" element={<ClientRegister />} />
+        <Route path="/client/login" element={<ClientLogin setUser={setUser} />} />
+        
+        {/* Dashboard Client : C'est ici que le client voit le menu et commande */}
+        <Route 
+          path="/client/dashboard" 
+          element={
+            user?.role === 'client' ? (
+              <ClientDashboard user={user} onLogout={handleLogout} />
+            ) : (
+              <Navigate to="/client/login" />
+            )
+          } 
         />
         
-        <Route path="/profile" element={<GerantProfile />} />
+        {/* --- FLUX GÉRANT (PANNEAU D'ADMINISTRATION) --- */}
+        <Route path="/gerant/register" element={<GerantRegister />} />
+        <Route path="/gerant/login" element={<GerantLogin setUser={setUser} />} />
+        
+        {/* Tableau de bord Gérant : Pour voir les commandes entrantes */}
+        <Route 
+          path="/dashboard" 
+          element={
+            user?.role === 'gerant' ? (
+              <DashboardGerant user={user} onLogout={handleLogout} />
+            ) : (
+              <Navigate to="/gerant/login" />
+            )
+          } 
+        />
+
+        {/* Gestion du Restaurant (Configuration initiale) */}
+        <Route 
+          path="/create-restaurant" 
+          element={user?.role === 'gerant' ? <CreateRestaurant /> : <Navigate to="/gerant/login" />} 
+        />
+
+        {/* Gestion des Plats (Ajouter de nouveaux délices au menu) */}
+        <Route 
+          path="/add-product" 
+          element={user?.role === 'gerant' ? <AddProduct /> : <Navigate to="/gerant/login" />} 
+        />
+        
+        {/* --- SÉCURITÉ --- */}
+        {/* Si un client essaie d'aller sur /client/home (ancienne route), on le redirige vers le dashboard */}
+        <Route path="/client/home" element={<Navigate to="/client/dashboard" />} />
+        
+        {/* Route de secours */}
+        <Route path="*" element={<Navigate to="/" />} />
       </Routes>
     </Router>
   );

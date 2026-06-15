@@ -1,130 +1,119 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
-import "leaflet/dist/leaflet.css";
 
-const GerantProfile = () => {
+const GerantRegister = () => {
     const navigate = useNavigate();
-    const userData = JSON.parse(localStorage.getItem("user"));
-
-    const [form, setForm] = useState({
-        prenom: userData?.prenom || "",
-        nom: userData?.nom || "",
-        email: userData?.email || "",
-        restaurant: userData?.restaurant || "",
-        latitude: userData?.latitude || 14.714,
-        longitude: userData?.longitude || -17.180,
-    });
-
-    const [isEditing, setIsEditing] = useState(false);
-    <MapContainer
-        center={[form.latitude, form.longitude]}
-        zoom={15}
-        style={{ height: "200px", borderRadius: "10px", marginBottom: "10px" }}
-        >
-        <TileLayer
-            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-        />
-        <Marker position={[form.latitude, form.longitude]}>
-            <Popup>{form.restaurant}</Popup>
-        </Marker>
-    </MapContainer>
-    const [message, setMessage] = useState("");
-
-    if (!userData) return <h2>Veuillez vous connecter</h2>;
-
-    const handleChange = (e) => {
-        setForm({ ...form, [e.target.name]: e.target.value });
-    };
+    const [form, setForm] = useState({ prenom: "", nom: "", telephone: "", email: "", password: "", restaurant: "", lieu: "" });
 
     const handleSubmit = (e) => {
         e.preventDefault();
-        localStorage.setItem("user", JSON.stringify(form));
-        setMessage("Informations mises à jour ✅");
-        setIsEditing(false);
+        const gerants = JSON.parse(localStorage.getItem("gerants") || "[]");
+        gerants.push(form);
+        localStorage.setItem("gerants", JSON.stringify(gerants));
+        alert("Inscription réussie !");
+        navigate("/gerant/login");
+    };
+
+    // --- DESIGN ULTRA SERRÉ ---
+    const styles = {
+        background: {
+            backgroundImage: 'url("/images/fastfood-bg.jpg")',
+            backgroundSize: "cover",
+            backgroundPosition: "center",
+            height: "100vh",
+            width: "100vw",
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+            fontFamily: "'Poppins', sans-serif",
+            margin: 0,
+            padding: 0,
+            overflow: "hidden"
+        },
+        overlay: {
+            position: "absolute", top: 0, left: 0, width: "100%", height: "100%",
+            backgroundColor: "rgba(0,0,0,0.85)", // Plus sombre pour réduire l'impression de grandeur
+            zIndex: 1
+        },
+        formCard: {
+            position: "relative",
+            zIndex: 2,
+            backgroundColor: "#000", // Noir pur pour bien délimiter la carte
+            padding: "15px", // Padding minimaliste
+            borderRadius: "15px",
+            width: "300px", // LARGEUR FIXE TRÈS PETITE
+            border: "1px solid #D4AF37",
+            boxShadow: "0 10px 40px rgba(0,0,0,0.8)",
+            color: "#fff"
+        },
+        input: {
+            width: "100%",
+            height: "35px", // HAUTEUR FIXE RÉDUITE
+            padding: "0 10px",
+            margin: "4px 0",
+            backgroundColor: "#1a1a1a",
+            border: "1px solid #333",
+            borderRadius: "6px",
+            color: "#fff",
+            fontSize: "12px", // Police plus petite
+            boxSizing: "border-box",
+            outline: "none"
+        },
+        button: {
+            width: "100%",
+            height: "40px",
+            backgroundColor: "#D4AF37",
+            color: "#000",
+            border: "none",
+            borderRadius: "6px",
+            fontWeight: "bold",
+            fontSize: "13px",
+            cursor: "pointer",
+            marginTop: "10px",
+            textTransform: "uppercase"
+        }
     };
 
     return (
-        <div style={containerStyle}>
-        <button onClick={() => navigate("/dashboard")} style={backBtn}>
-            ← Retour
-        </button>
+        <div style={styles.background}>
+            <div style={styles.overlay}></div>
+            
+            <div style={styles.formCard}>
+                <h4 style={{ textAlign: "center", margin: "0 0 10px 0", color: "#D4AF37", fontSize: "1rem" }}>
+                    Inscription Pro
+                </h4>
 
-        <div style={cardStyle}>
-            <h1 style={{ textAlign: "center" }}>Mon Profil</h1>
+                <form onSubmit={handleSubmit}>
+                    {/* Ligne 1 : Prénom / Nom */}
+                    <div style={{ display: "flex", gap: "5px" }}>
+                        <input style={styles.input} placeholder="Prénom" onChange={e => setForm({...form, prenom: e.target.value})} />
+                        <input style={styles.input} placeholder="Nom" onChange={e => setForm({...form, nom: e.target.value})} />
+                    </div>
+                    
+                    {/* Ligne 2 : Email */}
+                    <input style={styles.input} type="email" placeholder="Email" onChange={e => setForm({...form, email: e.target.value})} />
+                    
+                    {/* Ligne 3 : Tel / Pass */}
+                    <div style={{ display: "flex", gap: "5px" }}>
+                        <input style={styles.input} type="tel" placeholder="Tel" onChange={e => setForm({...form, telephone: e.target.value})} />
+                        <input style={styles.input} type="password" placeholder="Pass" onChange={e => setForm({...form, password: e.target.value})} />
+                    </div>
+                    
+                    {/* Séparation */}
+                    <div style={{ borderTop: "1px solid #222", margin: "8px 0", paddingTop: "8px" }}>
+                        <input style={styles.input} placeholder="Restaurant" onChange={e => setForm({...form, restaurant: e.target.value})} />
+                        <input style={styles.input} placeholder="Lieu" onChange={e => setForm({...form, lieu: e.target.value})} />
+                    </div>
 
-            {!isEditing ? (
-            <>
-                <p><strong>Prénom :</strong> {form.prenom}</p>
-                <p><strong>Nom :</strong> {form.nom}</p>
-                <p><strong>Email :</strong> {form.email}</p>
-                <p><strong>Restaurant :</strong> {form.restaurant}</p>
-                <p><strong>Latitude :</strong> {form.latitude}</p>
-                <p><strong>Longitude :</strong> {form.longitude}</p>
-
-                <button onClick={() => setIsEditing(true)} style={buttonStyle}>
-                Modifier
-                </button>
-            </>
-            ) : (
-            <form onSubmit={handleSubmit}>
-                <input name="prenom" value={form.prenom} onChange={handleChange} style={inputStyle}/>
-                <input name="nom" value={form.nom} onChange={handleChange} style={inputStyle}/>
-                <input name="email" value={form.email} onChange={handleChange} style={inputStyle}/>
-                <input name="restaurant" value={form.restaurant} onChange={handleChange} style={inputStyle}/>
-                <input name="latitude" value={form.latitude} onChange={handleChange} style={inputStyle}/>
-                <input name="longitude" value={form.longitude} onChange={handleChange} style={inputStyle}/>
-
-                <button type="submit" style={buttonStyle}>Enregistrer</button>
-            </form>
-            )}
-
-            {message && <p style={{ textAlign: "center", color: "green" }}>{message}</p>}
-        </div>
+                    <button style={styles.button}>S'inscrire</button>
+                    
+                    <p style={{ textAlign: "center", fontSize: "11px", marginTop: "12px", color: "#666" }}>
+                        Déjà un compte ? <span style={{ color: "#D4AF37", cursor: "pointer" }} onClick={() => navigate("/gerant/login")}>Se connecter</span>
+                    </p>
+                </form>
+            </div>
         </div>
     );
-    };
-
-    /* Styles */
-    const containerStyle = {
-    minHeight: "100vh",
-    backgroundImage: 'url("/images/fastfood-bg.jpg")',
-    backgroundSize: "cover",
-    display: "flex",
-    justifyContent: "center",
-    alignItems: "center",
-    };
-
-    const cardStyle = {
-    background: "#fff",
-    padding: "2rem",
-    borderRadius: "15px",
-    width: "450px",
-    };
-
-    const backBtn = {
-    position: "fixed",
-    top: "20px",
-    left: "20px",
-    background: "#ff9800",
-    color: "#fff",
-    padding: "10px",
-    border: "none",
-    };
-
-    const inputStyle = {
-    display: "block",
-    margin: "10px 0",
-    width: "100%",
-    padding: "10px",
-    };
-
-    const buttonStyle = {
-    background: "#ff9800",
-    color: "#fff",
-    padding: "10px",
-    border: "none",
-    width: "100%",
 };
 
-export default GerantProfile;
+export default GerantRegister;
